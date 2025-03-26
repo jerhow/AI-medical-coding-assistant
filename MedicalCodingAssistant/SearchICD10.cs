@@ -24,17 +24,27 @@ public class SearchICD10
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
     {
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        var input = JsonSerializer.Deserialize<SearchRequest>(requestBody, new JsonSerializerOptions
+        SearchRequest input;
+
+        try {
+            input = JsonSerializer.Deserialize<SearchRequest>(requestBody, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            }) ?? new SearchRequest();
+        }
+        catch (JsonException)
         {
-            PropertyNameCaseInsensitive = true
-        });
+            var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
+            await badRequestResponse.WriteStringAsync("Invalid JSON request body");
+            return badRequestResponse;
+        }
 
         var query = input?.Query?.Trim();
         var maxResults = input?.MaxResults ?? _defaultMaxResults;
 
         if (string.IsNullOrWhiteSpace(query))
         {
-            var emptyResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            var emptyResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
             await emptyResponse.WriteStringAsync("Query cannot be empty.");
             return emptyResponse;
         }
@@ -53,5 +63,5 @@ public class SearchRequest
     public string? Query { get; set; }
 
     [JsonPropertyName("maxResults")]
-    public int MaxResults { get; set; }
+    public int MaxResults { get; set; } = 0;
 }
