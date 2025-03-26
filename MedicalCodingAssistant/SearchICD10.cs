@@ -26,7 +26,17 @@ public class SearchICD10
             PropertyNameCaseInsensitive = true
         });
 
-        var icd10Results = await _searchService.SearchICD10Async(input?.Query ?? "");
+        var query = input?.Query?.Trim();
+        var maxResults = input?.MaxResults ?? 10;
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            var emptyResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await emptyResponse.WriteStringAsync("Query cannot be empty.");
+            return emptyResponse;
+        }
+
+        var icd10Results = await _searchService.SearchICD10Async(query, maxResults);
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(icd10Results);
         
@@ -38,4 +48,7 @@ public class SearchRequest
 {
     [JsonPropertyName("query")]
     public string? Query { get; set; }
+
+    [JsonPropertyName("maxResults")]
+    public int MaxResults { get; set; } = 10;
 }

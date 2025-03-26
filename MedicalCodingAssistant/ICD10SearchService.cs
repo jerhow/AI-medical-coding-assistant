@@ -11,14 +11,15 @@ public class ICD10SearchService
         _connectionString = configuration["SqlConnectionString"];
     }
 
-    public async Task<SearchResponse> SearchICD10Async(string query)
+    public async Task<SearchResponse> SearchICD10Async(string query, int maxResults)
     {
-        var results = await FullTextQueryAsync(query, useContains: true);
+        var maxResultsLimited = Math.Clamp(maxResults, 1, 50);
+        var results = await FullTextQueryAsync(query, useContains: true, maxResultsLimited);
         var usedFreeText = false;
 
         if (results.Count == 0)
         {
-            results = await FullTextQueryAsync(query, useContains: false);
+            results = await FullTextQueryAsync(query, useContains: false, maxResultsLimited);
             usedFreeText = true;
         }
 
@@ -29,7 +30,7 @@ public class ICD10SearchService
         };
     }
 
-    private async Task<List<ICD10Result>> FullTextQueryAsync(string query, bool useContains)
+    private async Task<List<ICD10Result>> FullTextQueryAsync(string query, bool useContains, int limit)
     {
         var results = new List<ICD10Result>();
 
@@ -40,12 +41,12 @@ public class ICD10SearchService
         await conn.OpenAsync();
 
         var sql = useContains
-            ? @"SELECT TOP 10 Code, short_desc, long_desc, FTT.RANK
+            ? @"SELECT TOP (@limit) Code, short_desc, long_desc, FTT.RANK
                 FROM dbo.cms_icd10_valid AS ICD
                 INNER JOIN CONTAINSTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
                 ORDER BY FTT.RANK DESC, ICD.Code ASC;"
-            : @"SELECT TOP 10 Code, short_desc, long_desc, FTT.RANK
+            : @"SELECT TOP (@limit) Code, short_desc, long_desc, FTT.RANK
                 FROM dbo.cms_icd10_valid AS ICD
                 INNER JOIN FREETEXTTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
@@ -53,6 +54,7 @@ public class ICD10SearchService
 
         using var cmd = new SqlCommand(sql, conn);
         cmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
+        cmd.Parameters.AddWithValue("@limit", limit);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
