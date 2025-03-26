@@ -38,7 +38,18 @@ public class ICD10SearchService
         var results = new List<ICD10Result>();
 
         if (string.IsNullOrWhiteSpace(query))
+        {
             return (results, 0);
+        }
+
+        results = await GetResultsAsync(query, useContains, limit);
+        var totalCount = await GetTotalCountAsync(query, useContains);
+        return (results, totalCount);
+    }
+
+    private async Task<List<ICD10Result>> GetResultsAsync(string query, bool useContains, int limit)
+    {
+        var results = new List<ICD10Result>();
 
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();
@@ -54,41 +65,40 @@ public class ICD10SearchService
                 INNER JOIN FREETEXTTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
                 ORDER BY FTT.RANK DESC, ICD.Code ASC;";
-                
-        using (var resultCmd = new SqlCommand(resultSql, conn))
-        {
-            resultCmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
-            resultCmd.Parameters.AddWithValue("@limit", limit);
 
-            using var reader = await resultCmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+        using var cmd = new SqlCommand(resultSql, conn);
+        cmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
+        cmd.Parameters.AddWithValue("@limit", limit);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            results.Add(new ICD10Result
             {
-                results.Add(new ICD10Result
-                {
-                    Code = reader.GetString(0),
-                    ShortDescription = reader.GetString(1),
-                    LongDescription = reader.GetString(2),
-                    Rank = reader.GetInt32(3)
-                });
-            }
+                Code = reader.GetString(0),
+                ShortDescription = reader.GetString(1),
+                LongDescription = reader.GetString(2),
+                Rank = reader.GetInt32(3)
+            });
         }
+
+        return results;
+    }
+
+    private async Task<int> GetTotalCountAsync(string query, bool useContains)
+    {
+        using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync();
 
         var countSql = useContains
             ? "SELECT COUNT(*) FROM dbo.cms_icd10_valid WHERE CONTAINS(long_desc, @query)"
             : "SELECT COUNT(*) FROM dbo.cms_icd10_valid WHERE FREETEXT(long_desc, @query)";
-        
-        var totalCount = 0;
-        using (var countCmd = new SqlCommand(countSql, conn))
-        {
-            countCmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
-            var scalarResult = await countCmd.ExecuteScalarAsync();
-            totalCount = scalarResult != null ? (int)scalarResult : 0;
-        } 
 
-        return (results, totalCount);
+        using var cmd = new SqlCommand(countSql, conn);
+        cmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
+
+        var scalarResult = await cmd.ExecuteScalarAsync();
+        var count = scalarResult != null ? (int)scalarResult : 0;
+        return count;
     }
 }
-
-
-
-
