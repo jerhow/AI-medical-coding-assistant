@@ -1,11 +1,12 @@
 using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices(services =>
     {
-        // Register services, DB clients, etc. here
+        services.AddSingleton<ICD10SearchService>();
     })
     .Build();
 
