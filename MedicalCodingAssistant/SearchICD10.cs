@@ -26,10 +26,6 @@ public class SearchICD10
             PropertyNameCaseInsensitive = true
         });
 
-        Console.WriteLine("\n");
-        Console.WriteLine($"******* Searching for ICD-10 codes matching '{input?.Query}' *******");
-        Console.WriteLine("\n");
-
         var icd10Results = await _searchService.SearchICD10Async(input?.Query ?? "");
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(icd10Results);

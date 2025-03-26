@@ -11,20 +11,48 @@ public class ICD10SearchService
         _connectionString = configuration["SqlConnectionString"];
     }
 
-    public async Task<List<ICD10Result>> SearchICD10Async(string query)
+    public async Task<SearchResponse> SearchICD10Async(string query)
+    {
+        var results = await FullTextQueryAsync(query, useContains: true);
+        var usedFreeText = false;
+
+        if (results.Count == 0)
+        {
+            results = await FullTextQueryAsync(query, useContains: false);
+            usedFreeText = true;
+        }
+
+        return new SearchResponse
+        {
+            UsedFreeTextFallback = usedFreeText,
+            Results = results
+        };
+    }
+
+    private async Task<List<ICD10Result>> FullTextQueryAsync(string query, bool useContains)
     {
         var results = new List<ICD10Result>();
+
+        if (string.IsNullOrWhiteSpace(query))
+            return results;
 
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();
 
-        using var cmd = new SqlCommand(@"
-            SELECT TOP 10 Code, short_desc, long_desc
-            FROM dbo.cms_icd10_valid
-            WHERE CONTAINS(long_desc, @query);
-        ", conn);
+        var sql = useContains
+            ? @"SELECT TOP 10 Code, short_desc, long_desc, FTT.RANK
+                FROM dbo.cms_icd10_valid AS ICD
+                INNER JOIN CONTAINSTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
+                    ON ICD.ID = FTT.[KEY]
+                ORDER BY FTT.RANK DESC, ICD.Code ASC;"
+            : @"SELECT TOP 10 Code, short_desc, long_desc, FTT.RANK
+                FROM dbo.cms_icd10_valid AS ICD
+                INNER JOIN FREETEXTTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
+                    ON ICD.ID = FTT.[KEY]
+                ORDER BY FTT.RANK DESC, ICD.Code ASC;";
 
-        cmd.Parameters.AddWithValue("@query", $"\"{query}\"");
+        using var cmd = new SqlCommand(sql, conn);
+        cmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
 
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -33,7 +61,8 @@ public class ICD10SearchService
             {
                 Code = reader.GetString(0),
                 ShortDescription = reader.GetString(1),
-                LongDescription = reader.GetString(2)
+                LongDescription = reader.GetString(2),
+                Rank = reader.GetInt32(3)
             });
         }
 
@@ -46,4 +75,11 @@ public class ICD10Result
     public required string Code { get; set; }
     public required string ShortDescription { get; set; }
     public required string LongDescription { get; set; }
+    public required int Rank { get; set; }
+}
+
+public class SearchResponse
+{
+    public bool UsedFreeTextFallback { get; set; }
+    public List<ICD10Result> Results { get; set; }
 }
