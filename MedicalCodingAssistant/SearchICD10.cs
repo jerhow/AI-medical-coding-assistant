@@ -4,16 +4,19 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
 
 public class SearchICD10
 {
     private readonly ILogger _logger;
     private readonly ICD10SearchService _searchService;
+    private readonly int _defaultMaxResults;
 
-    public SearchICD10(ILoggerFactory loggerFactory, ICD10SearchService searchService)
+    public SearchICD10(ILoggerFactory loggerFactory, ICD10SearchService searchService, IConfiguration configuration)
     {
         _logger = loggerFactory.CreateLogger<SearchICD10>();
         _searchService = searchService;
+        _defaultMaxResults = configuration.GetValue<int>("DefaultMaxResults");
     }
 
     [Function("SearchICD10")]
@@ -27,7 +30,7 @@ public class SearchICD10
         });
 
         var query = input?.Query?.Trim();
-        var maxResults = input?.MaxResults ?? 10;
+        var maxResults = input?.MaxResults ?? _defaultMaxResults;
 
         if (string.IsNullOrWhiteSpace(query))
         {
@@ -50,5 +53,5 @@ public class SearchRequest
     public string? Query { get; set; }
 
     [JsonPropertyName("maxResults")]
-    public int MaxResults { get; set; } = 10;
+    public int MaxResults { get; set; }
 }

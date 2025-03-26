@@ -5,15 +5,17 @@ using System.Data;
 public class ICD10SearchService
 {
     private readonly string? _connectionString;
+    private readonly int _maxAllowedResults;
 
     public ICD10SearchService(IConfiguration configuration)
     {
         _connectionString = configuration["SqlConnectionString"];
+        _maxAllowedResults = configuration.GetValue<int>("MaxAllowedResults");
     }
 
     public async Task<SearchResponse> SearchICD10Async(string query, int maxResults)
     {
-        var maxResultsLimited = Math.Clamp(maxResults, 1, 50);
+        var maxResultsLimited = Math.Clamp(maxResults, 1, _maxAllowedResults);
         var results = await FullTextQueryAsync(query, useContains: true, maxResultsLimited);
         var usedFreeText = false;
 
