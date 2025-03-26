@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
-using System.Data;
+using MedicalCodingAssistant.Models;
 
 public class ICD10SearchService
 {
@@ -74,16 +74,6 @@ public class ICD10SearchService
     }
 }
 
-public class ICD10Result
-{
-    public required string Code { get; set; }
-    public required string ShortDescription { get; set; }
-    public required string LongDescription { get; set; }
-    public required int Rank { get; set; }
-}
 
-public class SearchResponse
-{
-    public bool UsedFreeTextFallback { get; set; }
-    public List<ICD10Result> Results { get; set; }
-}
+
+

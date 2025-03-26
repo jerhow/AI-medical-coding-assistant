@@ -3,8 +3,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
+using MedicalCodingAssistant.Models;
 
 public class SearchICD10
 {
@@ -57,11 +57,4 @@ public class SearchICD10
     }
 }
 
-public class SearchRequest
-{
-    [JsonPropertyName("query")]
-    public string? Query { get; set; }
 
-    [JsonPropertyName("maxResults")]
-    public int MaxResults { get; set; } = 0;
-}
