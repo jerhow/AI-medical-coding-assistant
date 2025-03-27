@@ -9,6 +9,8 @@ public class OpenAIService
     private readonly string _endpoint;
     private readonly string _deployment;
     private readonly string _apiKey;
+    private readonly string _initialPrompt;
+    private readonly string _apiVersion;
 
     public OpenAIService(IConfiguration config)
     {
@@ -16,16 +18,19 @@ public class OpenAIService
         _endpoint = config["AzureOpenAI:Endpoint"];
         _deployment = config["AzureOpenAI:Deployment"];
         _apiKey = config["AzureOpenAI:ApiKey"];
+        _apiVersion = config["AzureOpenAI:ApiVersion"];
+        _initialPrompt = config["AzureOpenAI:InitialPrompt"];
     }
 
     public async Task<string> GetICD10SuggestionAsync(string diagnosis)
     {
-        var url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version=2025-01-01-preview";
+        var url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version={_apiVersion}";
 
         var requestBody = new
         {
             messages = new[]
             {
+                new { role = "system", content = _initialPrompt },
                 new { role = "user", content = $"Suggest ICD-10 codes for: {diagnosis}" }
             },
             temperature = 0.3
