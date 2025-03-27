@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using MedicalCodingAssistant.Models;
 
+namespace MedicalCodingAssistant.Services;
+
 public class ICD10SearchService
 {
     private readonly string? _connectionString;

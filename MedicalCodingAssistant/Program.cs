@@ -1,6 +1,7 @@
 using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using MedicalCodingAssistant.Services;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()

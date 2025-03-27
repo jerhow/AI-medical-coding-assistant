@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using MedicalCodingAssistant.Models;
+using MedicalCodingAssistant.Services;
 
 public class SearchICD10
 {
@@ -61,5 +62,3 @@ public class SearchICD10
         return response;
     }
 }
-
-
