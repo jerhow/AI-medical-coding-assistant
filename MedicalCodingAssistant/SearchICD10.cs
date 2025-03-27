@@ -11,12 +11,14 @@ public class SearchICD10
     private readonly ILogger _logger;
     private readonly ICD10SearchService _searchService;
     private readonly int _defaultMaxResults;
+    private readonly OpenAIService _openAI;
 
-    public SearchICD10(ILoggerFactory loggerFactory, ICD10SearchService searchService, IConfiguration configuration)
+    public SearchICD10(ILoggerFactory loggerFactory, ICD10SearchService searchService, IConfiguration configuration, OpenAIService openAI)
     {
         _logger = loggerFactory.CreateLogger<SearchICD10>();
         _searchService = searchService;
         _defaultMaxResults = configuration.GetValue<int>("DefaultMaxResults");
+        _openAI = openAI;
     }
 
     [Function("SearchICD10")]
@@ -48,6 +50,9 @@ public class SearchICD10
             await emptyResponse.WriteStringAsync("Query cannot be empty.");
             return emptyResponse;
         }
+
+        var aiResponse = await _openAI.GetICD10SuggestionAsync(query);
+        _logger.LogInformation("AI response: {Response}", aiResponse);
 
         var icd10Results = await _searchService.SearchICD10Async(query, maxResults);
         var response = req.CreateResponse(HttpStatusCode.OK);
