@@ -17,11 +17,11 @@ public class OpenAIService
     public OpenAIService(IConfiguration config)
     {
         _httpClient = new HttpClient();
-        _endpoint = config["AzureOpenAI:Endpoint"];
-        _deployment = config["AzureOpenAI:Deployment"];
-        _apiKey = config["AzureOpenAI:ApiKey"];
-        _apiVersion = config["AzureOpenAI:ApiVersion"];
-        _initialPrompt = config["AzureOpenAI:InitialPrompt"];
+        _endpoint = config["AzureOpenAI:Endpoint"] ?? throw new ArgumentNullException("AzureOpenAI:Endpoint configuration is missing.");
+        _deployment = config["AzureOpenAI:Deployment"] ?? throw new ArgumentNullException("AzureOpenAI:Deployment configuration is missing.");
+        _apiKey = config["AzureOpenAI:ApiKey"] ?? throw new ArgumentNullException("AzureOpenAI:ApiKey configuration is missing.");
+        _apiVersion = config["AzureOpenAI:ApiVersion"] ?? throw new ArgumentNullException("AzureOpenAI:ApiVersion configuration is missing.");
+        _initialPrompt = config["AzureOpenAI:InitialPrompt"] ?? throw new ArgumentNullException("AzureOpenAI:InitialPrompt configuration is missing.");
     }
 
     public async Task<string> GetICD10SuggestionAsync(string diagnosis)
@@ -56,6 +56,11 @@ public class OpenAIService
             .GetProperty("message")
             .GetProperty("content")
             .GetString();
+
+        if (result == null)
+        {
+            throw new Exception("The response from OpenAI did not contain a valid result.");
+        }
 
         return result;
     }
