@@ -2,10 +2,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using MedicalCodingAssistant.Services.Interfaces;
 
 namespace MedicalCodingAssistant.Services;
 
-public class OpenAIService
+public class OpenAIService : IOpenAIService
 {
     private readonly HttpClient _httpClient;
     private readonly string _endpoint;

@@ -1,10 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
 using MedicalCodingAssistant.Models;
+using MedicalCodingAssistant.Services.Interfaces;
 
 namespace MedicalCodingAssistant.Services;
 
-public class ICD10SearchService
+public class ICD10SearchService : IICD10SearchService
 {
     private readonly string? _connectionString;
     private readonly int _maxAllowedResults;
@@ -35,7 +36,7 @@ public class ICD10SearchService
         };
     }
 
-    private async Task<(List<ICD10Result>, int TotalCount)> FullTextQueryAsync(string query, bool useContains, int limit)
+    public async Task<(List<ICD10Result>, int TotalCount)> FullTextQueryAsync(string query, bool useContains, int limit)
     {
         var results = new List<ICD10Result>();
 
@@ -49,7 +50,7 @@ public class ICD10SearchService
         return (results, totalCount);
     }
 
-    private async Task<List<ICD10Result>> GetResultsAsync(string query, bool useContains, int limit)
+    public async Task<List<ICD10Result>> GetResultsAsync(string query, bool useContains, int limit)
     {
         var results = new List<ICD10Result>();
 
@@ -87,7 +88,7 @@ public class ICD10SearchService
         return results;
     }
 
-    private async Task<int> GetTotalCountAsync(string query, bool useContains)
+    public async Task<int> GetTotalCountAsync(string query, bool useContains)
     {
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();

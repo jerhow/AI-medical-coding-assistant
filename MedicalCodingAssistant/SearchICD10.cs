@@ -6,15 +6,16 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Services;
+using MedicalCodingAssistant.Services.Interfaces;
 
 public class SearchICD10
 {
     private readonly ILogger _logger;
-    private readonly ICD10SearchService _searchService;
+    private readonly IICD10SearchService _searchService;
     private readonly int _defaultMaxResults;
-    private readonly OpenAIService _openAI;
+    private readonly IOpenAIService _openAI;
 
-    public SearchICD10(ILoggerFactory loggerFactory, ICD10SearchService searchService, IConfiguration configuration, OpenAIService openAI)
+    public SearchICD10(ILoggerFactory loggerFactory, IICD10SearchService searchService, IConfiguration configuration, IOpenAIService openAI)
     {
         _logger = loggerFactory.CreateLogger<SearchICD10>();
         _searchService = searchService;
