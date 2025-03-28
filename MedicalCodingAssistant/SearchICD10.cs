@@ -74,7 +74,8 @@ public class SearchICD10
             {
                 Code = ICD10CodeNormalizer.ToCMSFormat(ai.Code),
                 Description = ai.Description,
-                Rank = ai.Rank
+                Rank = ai.Rank,
+                Reason = ai.Reason
             }).ToList();
 
             var codeStrings = normalizedAiResults.Select(r => r.Code).Distinct();
