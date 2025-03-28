@@ -59,12 +59,12 @@ public class ICD10SearchService : IICD10SearchService
         await conn.OpenAsync();
 
         var resultSql = useContains
-            ? @"SELECT TOP (@limit) Code, short_desc, long_desc, FTT.RANK
+            ? @"SELECT TOP (@limit) code, long_desc, FTT.RANK
                 FROM dbo.cms_icd10_valid AS ICD
                 INNER JOIN CONTAINSTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
                 ORDER BY FTT.RANK DESC, ICD.Code ASC;"
-            : @"SELECT TOP (@limit) Code, short_desc, long_desc, FTT.RANK
+            : @"SELECT TOP (@limit) code, long_desc, FTT.RANK
                 FROM dbo.cms_icd10_valid AS ICD
                 INNER JOIN FREETEXTTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
@@ -80,9 +80,8 @@ public class ICD10SearchService : IICD10SearchService
             results.Add(new ICD10Result
             {
                 Code = reader.GetString(0),
-                ShortDescription = reader.GetString(1),
-                LongDescription = reader.GetString(2),
-                Rank = reader.GetInt32(3)
+                LongDescription = reader.GetString(1),
+                Rank = reader.GetInt32(2)
             });
         }
 
