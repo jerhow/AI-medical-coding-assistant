@@ -105,4 +105,43 @@ public class ICD10SearchService : IICD10SearchService
         var count = scalarResult != null ? (int)scalarResult : 0;
         return count;
     }
+
+    /// <summary>
+    /// Take the list of codes from the AI service call, and match them against the codes in the database,
+    /// returning a list of only valid codes.
+    /// The caller of this method uses this to filter out invalid or hallucinated codes from the AI service.
+    /// </summary>
+    /// <param name="codes"></param>
+    /// <returns></returns>
+    public async Task<HashSet<string>> GetValidICD10CodesAsync(IEnumerable<string> codes)
+    {
+        var validCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (!codes.Any()) 
+        {
+            return validCodes;
+        }
+
+        var codeList = codes.ToList();
+
+        using var conn = new SqlConnection(_connectionString);
+        await conn.OpenAsync();
+
+        var parameters = codeList.Select((code, i) => $"@code{i}").ToList();
+        var query = $"SELECT Code FROM dbo.cms_icd10_valid WHERE code IN ({string.Join(", ", parameters)})";
+
+        using var cmd = new SqlCommand(query, conn);
+        for (int i = 0; i < codeList.Count; i++)
+        {
+            cmd.Parameters.AddWithValue($"@code{i}", codeList[i]);
+        }
+
+        using var reader = await cmd.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            validCodes.Add(reader.GetString(0));
+        }
+
+        return validCodes;
+    }
 }

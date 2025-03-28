@@ -12,4 +12,6 @@ public class AiICD10Result
     
     [JsonPropertyName("rank")]
     public int Rank { get; set; } = 0;
+    
+    public bool IsValid { get; set; } = true;
 }

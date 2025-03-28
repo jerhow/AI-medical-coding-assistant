@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using MedicalCodingAssistant.Models;
-using MedicalCodingAssistant.Services;
+using MedicalCodingAssistant.Utils;
 using MedicalCodingAssistant.Services.Interfaces;
 
 public class SearchICD10
@@ -64,14 +64,42 @@ public class SearchICD10
         {
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", query);
         }
-                
+
+        // Validate the codes that the AI service returned against the database, to avoid showing invalid or hallucinated codes
+        List<AiICD10Result>? normalizedAiResults = null;
+        if (aiResults != null && aiResults.Count > 0)
+        {
+            // Normalize the AI results to CMS.gov format (E.g., J449 instead of J44.9)
+            normalizedAiResults = aiResults.Select(ai => new AiICD10Result
+            {
+                Code = ICD10CodeNormalizer.ToCMSFormat(ai.Code),
+                Description = ai.Description,
+                Rank = ai.Rank
+            }).ToList();
+
+            var codeStrings = normalizedAiResults.Select(r => r.Code).Distinct();
+            var validCodes = await _searchService.GetValidICD10CodesAsync(codeStrings);
+
+            // If we want to filter out invalid codes
+            // aiResults = aiResults
+            //     .Where(r => validCodes.Contains(r.Code))
+            //     .OrderBy(r => r.Rank)
+            //     .ToList();
+
+            // If we want to mark each result as valid or invalid
+            foreach (var ai in normalizedAiResults)
+            {
+                ai.IsValid = validCodes.Contains(ai.Code);
+            }
+        }
+
         var response = req.CreateResponse(HttpStatusCode.OK);
         var result = new SearchResponse
         {
             UsedFreeTextFallback = searchResults.UsedFreeTextFallback,
             TotalCount = searchResults.TotalCount,
             Results = searchResults.Results,
-            AiResults = aiResults ?? new List<AiICD10Result>()
+            AiResults = normalizedAiResults ?? new List<AiICD10Result>()
         };
         
         await response.WriteAsJsonAsync(result);
