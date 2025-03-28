@@ -13,14 +13,14 @@ public class SearchICD10
     private readonly ILogger _logger;
     private readonly IICD10SearchService _searchService;
     private readonly int _defaultMaxResults;
-    private readonly IOpenAIService _openAI;
+    private readonly IOpenAIService _aiService;
 
-    public SearchICD10(ILoggerFactory loggerFactory, IICD10SearchService searchService, IConfiguration configuration, IOpenAIService openAI)
+    public SearchICD10(ILoggerFactory loggerFactory, IICD10SearchService searchService, IConfiguration configuration, IOpenAIService aiService)
     {
         _logger = loggerFactory.CreateLogger<SearchICD10>();
         _searchService = searchService;
         _defaultMaxResults = configuration.GetValue<int>("DefaultMaxResults");
-        _openAI = openAI;
+        _aiService = aiService;
     }
 
     [Function("SearchICD10")]
@@ -53,13 +53,28 @@ public class SearchICD10
             return emptyResponse;
         }
 
-        var aiResponse = await _openAI.GetICD10SuggestionAsync(query);
-        _logger.LogInformation("AI response: {Response}", aiResponse);
-
-        var icd10Results = await _searchService.SearchICD10Async(query, maxResults);
+        var searchResults = await _searchService.SearchICD10Async(query, maxResults);
+        List<AiICD10Result>? aiResults = null;
+        try
+        {
+            var aiResponse = await _aiService.GetICD10SuggestionAsync(query);
+            aiResults = JsonSerializer.Deserialize<List<AiICD10Result>>(aiResponse);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", query);
+        }
+                
         var response = req.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(icd10Results);
+        var result = new SearchResponse
+        {
+            UsedFreeTextFallback = searchResults.UsedFreeTextFallback,
+            TotalCount = searchResults.TotalCount,
+            Results = searchResults.Results,
+            AiResults = aiResults ?? new List<AiICD10Result>()
+        };
         
+        await response.WriteAsJsonAsync(result);
         return response;
     }
 }
