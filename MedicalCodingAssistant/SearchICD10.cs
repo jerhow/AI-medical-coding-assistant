@@ -30,6 +30,8 @@ public class SearchICD10
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         SearchRequest input;
 
+        // Deserialize the request body into the SearchRequest object
+        // If deserialization fails, return a 400 Bad Request response
         try {
             input = JsonSerializer.Deserialize<SearchRequest>(requestBody, new JsonSerializerOptions
             {
@@ -38,21 +40,24 @@ public class SearchICD10
         }
         catch (JsonException)
         {
-            var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
+            HttpResponseData badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
             await badRequestResponse.WriteStringAsync("Invalid JSON request body");
             return badRequestResponse;
         }
 
+        // Extract the query from the input object and set a default max results value
         var query = input?.Query?.Trim();
         var maxResults = input?.MaxResults ?? _defaultMaxResults;
 
+        // Make sure the query itself (the natural language diagnosis or clinical description) is not empty
         if (string.IsNullOrWhiteSpace(query))
         {
-            var emptyResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
+            HttpResponseData emptyResponse = req.CreateResponse(HttpStatusCode.BadRequest); // 400
             await emptyResponse.WriteStringAsync("Query cannot be empty.");
             return emptyResponse;
         }
 
+        // Fetch the code suggestions from the database and AI service
         var searchResults = await _searchService.SearchICD10Async(query, maxResults);
         List<AiICD10Result>? aiResults = null;
         try
@@ -65,7 +70,30 @@ public class SearchICD10
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", query);
         }
 
-        // Validate the codes that the AI service returned against the database, to avoid showing invalid or hallucinated codes
+        // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
+        var normalizedAiResults = await ValidateAICodes(aiResults);
+
+        // Construct the result payload with the DB search and the normalized AI results, and return it as a JSON response
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        var result = new SearchResponse
+        {
+            UsedFreeTextFallback = searchResults.UsedFreeTextFallback,
+            TotalCount = searchResults.TotalCount,
+            Results = searchResults.Results,
+            AiResults = normalizedAiResults ?? new List<AiICD10Result>()
+        };
+        
+        await response.WriteAsJsonAsync(result);
+        return response;
+    }
+
+    /// <summary>
+    /// Validates the AI results against the database to ensure that the codes are valid and not hallucinated.
+    /// </summary>
+    /// <param name="aiResults"></param>
+    /// <returns></returns>
+    private async Task<List<AiICD10Result>> ValidateAICodes(List<AiICD10Result> aiResults)
+    {
         List<AiICD10Result>? normalizedAiResults = null;
         if (aiResults != null && aiResults.Count > 0)
         {
@@ -94,16 +122,6 @@ public class SearchICD10
             }
         }
 
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        var result = new SearchResponse
-        {
-            UsedFreeTextFallback = searchResults.UsedFreeTextFallback,
-            TotalCount = searchResults.TotalCount,
-            Results = searchResults.Results,
-            AiResults = normalizedAiResults ?? new List<AiICD10Result>()
-        };
-        
-        await response.WriteAsJsonAsync(result);
-        return response;
+        return normalizedAiResults ?? new List<AiICD10Result>();
     }
 }
