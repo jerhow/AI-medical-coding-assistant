@@ -127,7 +127,7 @@ public class ICD10SearchService : IICD10SearchService
         await conn.OpenAsync();
 
         var parameters = codeList.Select((code, i) => $"@code{i}").ToList();
-        var query = $"SELECT Code FROM dbo.cms_icd10_valid WHERE code IN ({string.Join(", ", parameters)})";
+        var query = $"SELECT Code FROM dbo.cms_icd10cm_2025 WHERE code IN ({string.Join(", ", parameters)})";
 
         using var cmd = new SqlCommand(query, conn);
         for (int i = 0; i < codeList.Count; i++)
