@@ -58,12 +58,12 @@ public class SearchICD10
         }
 
         // Fetch the code suggestions from the database and AI service
-        var searchResults = await _searchService.SearchICD10Async(query, maxResults);
-        List<AiICD10Result>? aiResults = null;
+        SearchResponse searchResponse = await _searchService.SearchICD10Async(query, maxResults);
+        AiICD10Response? aiResponse = null;
         try
         {
-            var aiResponse = await _aiService.GetICD10SuggestionAsync(query);
-            aiResults = JsonSerializer.Deserialize<List<AiICD10Result>>(aiResponse);
+            string aiResponseJson = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.SearchResults);
+            aiResponse = JsonSerializer.Deserialize<AiICD10Response>(aiResponseJson);
         }
         catch (Exception ex)
         {
@@ -71,16 +71,19 @@ public class SearchICD10
         }
 
         // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
-        var normalizedAiResults = await ValidateAICodes(aiResults);
+        List<AiICD10Result> normalizedAiResults = aiResponse?.Additional != null 
+            ? await ValidateAICodes(aiResponse.Additional) 
+            : new List<AiICD10Result>();
 
         // Construct the result payload with the DB search and the normalized AI results, and return it as a JSON response
         var response = req.CreateResponse(HttpStatusCode.OK);
         var result = new SearchResponse
         {
-            UsedFreeTextFallback = searchResults.UsedFreeTextFallback,
-            TotalCount = searchResults.TotalCount,
-            Results = searchResults.Results,
-            AiResults = normalizedAiResults ?? new List<AiICD10Result>()
+            UsedFreeTextFallback = searchResponse.UsedFreeTextFallback,
+            TotalCount = searchResponse.TotalCount,
+            SearchResults = searchResponse.SearchResults,
+            SearchResultsReranked = normalizedAiResults,
+            AiAddtionalResults = aiResponse.Additional
         };
         
         await response.WriteAsJsonAsync(result);

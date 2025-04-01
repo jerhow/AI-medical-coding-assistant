@@ -15,6 +15,9 @@ public class AiICD10Result
 
     [JsonPropertyName("reason")]
     public string? Reason { get; set; }
+
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "";
     
     public bool IsValid { get; set; } = true;
 }

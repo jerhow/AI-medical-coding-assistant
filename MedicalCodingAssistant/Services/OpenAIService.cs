@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Services.Interfaces;
 
 namespace MedicalCodingAssistant.Services;
@@ -25,16 +26,18 @@ public class OpenAIService : IOpenAIService
         _initialPrompt = config["AzureOpenAI:InitialPrompt"] ?? throw new ArgumentNullException("AzureOpenAI:InitialPrompt configuration is missing.");
     }
 
-    public async Task<string> GetICD10SuggestionAsync(string diagnosis)
+    public async Task<string> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
     {
-        var url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version={_apiVersion}";
+        string url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version={_apiVersion}";
+
+        string userMessage = BuildUserMessage(diagnosis, sqlResults);
 
         var requestBody = new
         {
             messages = new[]
             {
                 new { role = "system", content = _initialPrompt },
-                new { role = "user", content = $"Suggest ICD-10 codes for: {diagnosis}" }
+                new { role = "user", content = userMessage }
             },
             temperature = 0.3
         };
@@ -65,4 +68,23 @@ public class OpenAIService : IOpenAIService
 
         return result;
     }
+
+    private string BuildUserMessage(string diagnosis, List<ICD10Result> sqlResults)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"The diagnosis is:\n\n\"{diagnosis.Trim()}\"\n");
+        sb.AppendLine("The following ICD-10-CM codes were returned by a full-text search:\n");
+
+        foreach (var result in sqlResults)
+        {
+            // If you want to display with a dot, you can re-format: e.g., J449 => J44.9
+            sb.AppendLine($"- {result.Code}: {result.LongDescription}");
+        }
+
+        sb.AppendLine("\nPlease re-rank these codes based on relevance to the diagnosis, and suggest any additional ICD-10-CM codes that might be more appropriate or are missing.");
+
+        return sb.ToString();
+    }
+
 }
