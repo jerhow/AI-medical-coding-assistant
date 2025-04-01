@@ -57,18 +57,10 @@ public class SearchICD10
             return emptyResponse;
         }
 
-        // Fetch the code suggestions from the database and AI service
+        // Fetch the code suggestions from the database ("search") and AI service ("AI")
         SearchResponse searchResponse = await _searchService.SearchICD10Async(query, maxResults);
         AiICD10Response? aiResponse = null;
-        try
-        {
-            string aiResponseJson = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.SearchResults);
-            aiResponse = JsonSerializer.Deserialize<AiICD10Response>(aiResponseJson);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", query);
-        }
+        aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.SearchResults);
 
         // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
         List<AiICD10Result> normalizedAiResults = aiResponse?.Additional != null 

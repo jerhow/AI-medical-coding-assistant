@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Services.Interfaces;
 
@@ -15,8 +16,9 @@ public class OpenAIService : IOpenAIService
     private readonly string _apiKey;
     private readonly string _initialPrompt;
     private readonly string _apiVersion;
+    private readonly ILogger _logger;
 
-    public OpenAIService(IConfiguration config)
+    public OpenAIService(IConfiguration config, ILoggerFactory loggerFactory)
     {
         _httpClient = new HttpClient();
         _endpoint = config["AzureOpenAI:Endpoint"] ?? throw new ArgumentNullException("AzureOpenAI:Endpoint configuration is missing.");
@@ -24,9 +26,10 @@ public class OpenAIService : IOpenAIService
         _apiKey = config["AzureOpenAI:ApiKey"] ?? throw new ArgumentNullException("AzureOpenAI:ApiKey configuration is missing.");
         _apiVersion = config["AzureOpenAI:ApiVersion"] ?? throw new ArgumentNullException("AzureOpenAI:ApiVersion configuration is missing.");
         _initialPrompt = config["AzureOpenAI:InitialPrompt"] ?? throw new ArgumentNullException("AzureOpenAI:InitialPrompt configuration is missing.");
+        _logger = loggerFactory.CreateLogger<SearchICD10>();
     }
 
-    public async Task<string> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
+    public async Task<AiICD10Response> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
     {
         string url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version={_apiVersion}";
 
@@ -55,18 +58,32 @@ public class OpenAIService : IOpenAIService
         }
 
         using var doc = JsonDocument.Parse(responseBody);
-        var result = doc.RootElement
+        var jsonResult = doc.RootElement
             .GetProperty("choices")[0]
             .GetProperty("message")
             .GetProperty("content")
             .GetString();
 
-        if (result == null)
+        if (jsonResult == null)
         {
             throw new Exception("The response from OpenAI did not contain a valid result.");
         }
 
-        return result;
+        AiICD10Response? aiResponse = null;
+        try
+        {
+            aiResponse = JsonSerializer.Deserialize<AiICD10Response>(jsonResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
+        }
+        
+        return aiResponse ?? new AiICD10Response
+        {
+            Reranked = new List<AiICD10Result>(),
+            Additional = new List<AiICD10Result>()
+        };
     }
 
     private string BuildUserMessage(string diagnosis, List<ICD10Result> sqlResults)
