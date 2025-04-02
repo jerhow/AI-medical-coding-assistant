@@ -60,9 +60,10 @@ public class SearchICD10
         // Fetch the code suggestions from the database ("search") and AI service ("AI")
         SearchResponse searchResponse = await _searchService.SearchICD10Async(query, maxResults);
         AiICD10Response? aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.SearchResults);
+        
 
         // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
-        List<AiICD10Result> normalizedAiResults = aiResponse?.Additional != null 
+        List<AiICD10Result> normalizedAiAdditinalResults = aiResponse?.Additional != null 
             ? await ValidateAICodes(aiResponse.Additional) 
             : new List<AiICD10Result>();
 
@@ -73,8 +74,8 @@ public class SearchICD10
             UsedFreeTextFallback = searchResponse.UsedFreeTextFallback,
             TotalCount = searchResponse.TotalCount,
             SearchResults = searchResponse.SearchResults,
-            SearchResultsReranked = normalizedAiResults,
-            AiAddtionalResults = aiResponse.Additional
+            SearchResultsReranked = aiResponse.Reranked,
+            AiAddtionalResults = normalizedAiAdditinalResults
         };
         
         await response.WriteAsJsonAsync(result);
