@@ -17,6 +17,8 @@ public class OpenAIService : IOpenAIService
     private readonly string _apiKey;
     private readonly string _initialPrompt;
     private readonly string _apiVersion;
+    private readonly double _apiTemperature;
+    private readonly string _apiUserMessageAdditionalContext;
     private readonly ILogger _logger;
 
     public OpenAIService(IConfiguration config, ILoggerFactory loggerFactory)
@@ -27,6 +29,8 @@ public class OpenAIService : IOpenAIService
         _apiKey = config["AzureOpenAI:ApiKey"] ?? throw new ArgumentNullException("AzureOpenAI:ApiKey configuration is missing.");
         _apiVersion = config["AzureOpenAI:ApiVersion"] ?? throw new ArgumentNullException("AzureOpenAI:ApiVersion configuration is missing.");
         _initialPrompt = config["AzureOpenAI:InitialPrompt"] ?? throw new ArgumentNullException("AzureOpenAI:InitialPrompt configuration is missing.");
+        _apiTemperature = config.GetValue<double>("AzureOpenAI:Temperature", 0.3);
+        _apiUserMessageAdditionalContext = config["AzureOpenAI:UserMessageAdditionalContext"] ?? throw new ArgumentNullException("AzureOpenAI:UserMessageAdditionalContext configuration is missing.");
         _logger = loggerFactory.CreateLogger<SearchICD10>();
     }
 
@@ -43,7 +47,7 @@ public class OpenAIService : IOpenAIService
                 new { role = "system", content = _initialPrompt },
                 new { role = "user", content = userMessage }
             },
-            temperature = 0.3
+            temperature = _apiTemperature
         };
 
         var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
@@ -122,7 +126,7 @@ public class OpenAIService : IOpenAIService
             sb.AppendLine($"- {formattedCode}: {result.LongDescription}");
         }
 
-        sb.AppendLine("\nPlease re-rank these codes based on relevance to the diagnosis, and suggest any additional ICD-10-CM codes that might be more appropriate or are missing.");
+        sb.AppendLine(_apiUserMessageAdditionalContext);
 
         return sb.ToString();
     }
