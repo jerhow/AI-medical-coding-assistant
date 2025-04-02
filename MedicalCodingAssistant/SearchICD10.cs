@@ -114,6 +114,7 @@ public class SearchICD10
             foreach (var ai in normalizedAiResults)
             {
                 ai.IsValid = validCodes.Contains(ai.Code);
+                ai.Source = "gpt";
             }
         }
 
