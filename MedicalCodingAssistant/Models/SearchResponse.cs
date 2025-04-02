@@ -6,5 +6,5 @@ public class SearchResponse
     public int TotalCount { get; set; }
     public required List<ICD10Result> SearchResults { get; set; }
     public required List<AiICD10Result> SearchResultsReranked { get; set; }
-    public required List<AiICD10Result> AiAddtionalResults { get; set; }
+    public required List<AiICD10Result> AiAdditionalResults { get; set; }
 }

@@ -75,7 +75,7 @@ public class SearchICD10
             TotalCount = searchResponse.TotalCount,
             SearchResults = searchResponse.SearchResults,
             SearchResultsReranked = aiResponse.Reranked,
-            AiAddtionalResults = normalizedAiAdditinalResults
+            AiAdditionalResults = normalizedAiAdditinalResults
         };
         
         await response.WriteAsJsonAsync(result);
