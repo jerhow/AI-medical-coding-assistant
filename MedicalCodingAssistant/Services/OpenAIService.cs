@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Services.Interfaces;
+using MedicalCodingAssistant.Utils;
 
 namespace MedicalCodingAssistant.Services;
 
@@ -78,12 +79,30 @@ public class OpenAIService : IOpenAIService
         {
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
         }
+
+        aiResponse.Reranked = await FormatRerankedResultCodes(aiResponse.Reranked);
         
         return aiResponse ?? new AiICD10Response
         {
             Reranked = new List<AiICD10Result>(),
             Additional = new List<AiICD10Result>()
         };
+    }
+
+    /// <summary>
+    /// Ensure that the re-ranked codes are in the correct format.
+    /// When we get the results back from OpenAI, they are sometimes in the non-standard format (e.g., J44.9 instead of J449).
+    /// </summary>
+    /// <param name="rerankedResults"></param>
+    /// <returns></returns>
+    private Task<List<AiICD10Result>> FormatRerankedResultCodes(List<AiICD10Result> rerankedResults)
+    {
+        foreach (var result in rerankedResults)
+        {
+            result.Code = ICD10CodeNormalizer.ToCMSFormat(result.Code);
+        }
+
+        return Task.FromResult(rerankedResults);
     }
 
     private string BuildUserMessage(string diagnosis, List<ICD10Result> sqlResults)
@@ -93,10 +112,14 @@ public class OpenAIService : IOpenAIService
         sb.AppendLine($"The diagnosis is:\n\n\"{diagnosis.Trim()}\"\n");
         sb.AppendLine("The following ICD-10-CM codes were returned by a full-text search:\n");
 
+        string formattedCode = "";
         foreach (var result in sqlResults)
         {
-            // If you want to display with a dot, you can re-format: e.g., J449 => J44.9
-            sb.AppendLine($"- {result.Code}: {result.LongDescription}");
+            // Here, a 'formatted' code means it has the decimal point for readability.
+            // Trying this format for the codes we are sending to GPT, because it seems to want to return them in this format unless instructed otherwise.
+            // It may make no difference, we'll have to observe the results.
+            formattedCode = ICD10CodeNormalizer.ToHumanReadableFormat(result.Code);
+            sb.AppendLine($"- {formattedCode}: {result.LongDescription}");
         }
 
         sb.AppendLine("\nPlease re-rank these codes based on relevance to the diagnosis, and suggest any additional ICD-10-CM codes that might be more appropriate or are missing.");
