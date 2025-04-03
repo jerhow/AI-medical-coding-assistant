@@ -88,21 +88,8 @@ public class OpenAIService : IOpenAIService
         {
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
         }
-
-        _gptLoggingService.Log(new GptResponseLog
-        {
-            ApiVersion = _apiVersion,
-            Query = diagnosis,
-            SqlResultCount = sqlResults.Count,
-            SqlResults = sqlResults,
-            GptResponseJson = jsonResult,
-            Temperature = _apiTemperature,
-            ResponseTime = stopwatch.Elapsed,
-            SystemPrompt = _initialPrompt,
-            UserPrompt = userMessage,
-            DeploymentName = _deployment,
-            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
-        });
+        
+        LogGptResponse(diagnosis, sqlResults, jsonResult, stopwatch, userMessage);
 
         return aiResult ?? new List<AiICD10Result>();
     }
@@ -129,4 +116,21 @@ public class OpenAIService : IOpenAIService
         return sb.ToString();
     }
 
+    private void LogGptResponse(string diagnosis, List<ICD10Result> sqlResults, string jsonResult, Stopwatch stopwatch, string userMessage)
+    {
+        _gptLoggingService.Log(new GptResponseLog
+        {
+            ApiVersion = _apiVersion,
+            Query = diagnosis,
+            SqlResultCount = sqlResults.Count,
+            SqlResults = sqlResults,
+            GptResponseJson = jsonResult,
+            Temperature = _apiTemperature,
+            ResponseTime = stopwatch.Elapsed,
+            SystemPrompt = _initialPrompt,
+            UserPrompt = userMessage,
+            DeploymentName = _deployment,
+            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
+        });
+    }
 }
