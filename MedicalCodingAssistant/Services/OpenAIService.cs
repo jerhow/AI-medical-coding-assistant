@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Services.Interfaces;
 using MedicalCodingAssistant.Utils;
@@ -20,8 +21,9 @@ public class OpenAIService : IOpenAIService
     private readonly double _apiTemperature;
     private readonly string _apiUserMessageAdditionalContext;
     private readonly ILogger _logger;
+    private readonly GptLoggingService _gptLoggingService;
 
-    public OpenAIService(IConfiguration config, ILoggerFactory loggerFactory)
+    public OpenAIService(IConfiguration config, ILoggerFactory loggerFactory, GptLoggingService gptLoggingService)
     {
         _httpClient = new HttpClient();
         _endpoint = config["AzureOpenAI:Endpoint"] ?? throw new ArgumentNullException("AzureOpenAI:Endpoint configuration is missing.");
@@ -32,6 +34,7 @@ public class OpenAIService : IOpenAIService
         _apiTemperature = config.GetValue<double>("AzureOpenAI:Temperature", 0.3);
         _apiUserMessageAdditionalContext = config["AzureOpenAI:UserMessageAdditionalContext"] ?? throw new ArgumentNullException("AzureOpenAI:UserMessageAdditionalContext configuration is missing.");
         _logger = loggerFactory.CreateLogger<SearchICD10>();
+        _gptLoggingService = gptLoggingService;
     }
 
     public async Task<List<AiICD10Result>> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
@@ -54,8 +57,10 @@ public class OpenAIService : IOpenAIService
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
 
+        var stopwatch = Stopwatch.StartNew(); // Start the stopwatch to measure response time
         var response = await _httpClient.PostAsync(url, content);
         var responseBody = await response.Content.ReadAsStringAsync();
+        stopwatch.Stop();
 
         if (!response.IsSuccessStatusCode)
         {
@@ -83,6 +88,21 @@ public class OpenAIService : IOpenAIService
         {
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
         }
+
+        _gptLoggingService.Log(new GptResponseLog
+        {
+            ApiVersion = _apiVersion,
+            Query = diagnosis,
+            SqlResultCount = sqlResults.Count,
+            SqlResults = sqlResults,
+            GptResponseJson = jsonResult,
+            Temperature = _apiTemperature,
+            ResponseTime = stopwatch.Elapsed,
+            SystemPrompt = _initialPrompt,
+            UserPrompt = userMessage,
+            DeploymentName = _deployment,
+            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
+        });
 
         return aiResult ?? new List<AiICD10Result>();
     }

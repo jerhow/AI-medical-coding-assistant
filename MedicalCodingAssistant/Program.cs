@@ -10,6 +10,7 @@ var host = new HostBuilder()
     {
         services.AddSingleton<IICD10SearchService, ICD10SearchService>();
         services.AddSingleton<IOpenAIService, OpenAIService>();
+        services.AddSingleton<GptLoggingService>();
     })
     .Build();
 
