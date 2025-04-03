@@ -47,7 +47,15 @@ public class SearchICD10
 
         // Extract the query from the input object and set a default max results value
         var query = input?.Query?.Trim();
-        var maxResults = input?.MaxResults ?? _defaultMaxResults;
+        int maxResults = 0;
+        if (input?.MaxSqlResults == null || input.MaxSqlResults < 1)
+        {
+            maxResults = _defaultMaxResults;
+        }
+        else
+        {
+            maxResults = input.MaxSqlResults;
+        }
 
         // Make sure the query itself (the natural language diagnosis or clinical description) is not empty
         if (string.IsNullOrWhiteSpace(query))

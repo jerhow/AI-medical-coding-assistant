@@ -7,6 +7,6 @@ public class SearchRequest
     [JsonPropertyName("query")]
     public string? Query { get; set; }
 
-    [JsonPropertyName("maxResults")]
-    public int MaxResults { get; set; } = 0;
+    [JsonPropertyName("maxSqlResults")]
+    public int MaxSqlResults { get; set; } = 0;
 }
