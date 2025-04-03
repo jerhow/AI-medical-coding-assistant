@@ -4,5 +4,5 @@ namespace MedicalCodingAssistant.Services.Interfaces;
 
 public interface IOpenAIService
 {
-    Task<AiICD10Response> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults);
+    Task<List<AiICD10Result>> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults);
 }

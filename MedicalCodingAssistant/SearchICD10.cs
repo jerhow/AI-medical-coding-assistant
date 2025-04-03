@@ -59,23 +59,22 @@ public class SearchICD10
 
         // Fetch the code suggestions from the database ("search") and AI service ("AI")
         SearchResponse searchResponse = await _searchService.SearchICD10Async(query, maxResults);
-        AiICD10Response? aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.SearchResults);
-        
+        List<AiICD10Result>? aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.DbSearchResults);
+        aiResponse = ICD10CodeNormalizer.FormatCodes(aiResponse, "CMS"); // Codes must be in CMS format for internal consistency
 
         // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
-        List<AiICD10Result> normalizedAiAdditinalResults = aiResponse?.Additional != null 
-            ? await ValidateAICodes(aiResponse.Additional) 
+        List<AiICD10Result> normalizedAiResponse = aiResponse != null 
+            ? await ValidateAICodes(aiResponse) 
             : new List<AiICD10Result>();
-
+        
         // Construct the result payload with the DB search and the normalized AI results, and return it as a JSON response
         var response = req.CreateResponse(HttpStatusCode.OK);
         var result = new SearchResponse
         {
             UsedFreeTextFallback = searchResponse.UsedFreeTextFallback,
             TotalCount = searchResponse.TotalCount,
-            SearchResults = searchResponse.SearchResults,
-            SearchResultsReranked = aiResponse.Reranked,
-            AiAdditionalResults = normalizedAiAdditinalResults
+            DbSearchResults = searchResponse.DbSearchResults,
+            SearchResults = ICD10CodeNormalizer.FormatCodes(normalizedAiResponse, "HumanReadable")
         };
         
         await response.WriteAsJsonAsync(result);
@@ -84,40 +83,26 @@ public class SearchICD10
 
     /// <summary>
     /// Validates the AI results against the database to ensure that the codes are valid and not hallucinated.
+    /// This method expects the codes in 'aiResponse' to be in CMS format (e.g., J449 instead of J44.9).
     /// </summary>
-    /// <param name="aiResults"></param>
+    /// <param name="aiResponse"></param>
     /// <returns></returns>
-    private async Task<List<AiICD10Result>> ValidateAICodes(List<AiICD10Result> aiResults)
+    private async Task<List<AiICD10Result>> ValidateAICodes(List<AiICD10Result> aiResponse)
     {
-        List<AiICD10Result>? normalizedAiResults = null;
-        if (aiResults != null && aiResults.Count > 0)
+        if (aiResponse == null || aiResponse.Count == 0)
         {
-            // Normalize the AI results to CMS.gov format (E.g., J449 instead of J44.9)
-            normalizedAiResults = aiResults.Select(ai => new AiICD10Result
-            {
-                Code = ICD10CodeNormalizer.ToCMSFormat(ai.Code),
-                Description = ai.Description,
-                Rank = ai.Rank,
-                Reason = ai.Reason
-            }).ToList();
+            return new List<AiICD10Result>();
+        }
+        
+        var codeStrings = aiResponse.Select(r => r.Code).Distinct(); // Collect the codes from the AI response
+        var validCodes = await _searchService.GetValidICD10CodesAsync(codeStrings); // Only the codes from `codeStrings` that exist in the ICD-10 database (i.e., are valid)
 
-            var codeStrings = normalizedAiResults.Select(r => r.Code).Distinct();
-            var validCodes = await _searchService.GetValidICD10CodesAsync(codeStrings);
-
-            // If we want to filter out invalid codes
-            // aiResults = aiResults
-            //     .Where(r => validCodes.Contains(r.Code))
-            //     .OrderBy(r => r.Rank)
-            //     .ToList();
-
-            // If we want to mark each result as valid or invalid
-            foreach (var ai in normalizedAiResults)
-            {
-                ai.IsValid = validCodes.Contains(ai.Code);
-                ai.Source = "gpt";
-            }
+        // Mark each result as valid or invalid
+        foreach (var ai in aiResponse)
+        {
+            ai.IsValid = validCodes.Contains(ai.Code);
         }
 
-        return normalizedAiResults ?? new List<AiICD10Result>();
+        return aiResponse;
     }
 }

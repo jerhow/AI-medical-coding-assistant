@@ -32,9 +32,8 @@ public class ICD10SearchService : IICD10SearchService
         {
             UsedFreeTextFallback = usedFreeText,
             TotalCount = totalCount,
-            SearchResults = results,
-            SearchResultsReranked = new List<AiICD10Result>(), // Initialize with an empty list since we don't have this yet
-            AiAdditionalResults = new List<AiICD10Result>() // Initialize with an empty list since we don't have this yet
+            DbSearchResults = results,
+            SearchResults = new List<AiICD10Result>()
         };
     }
 

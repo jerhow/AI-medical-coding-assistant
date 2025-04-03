@@ -34,7 +34,7 @@ public class OpenAIService : IOpenAIService
         _logger = loggerFactory.CreateLogger<SearchICD10>();
     }
 
-    public async Task<AiICD10Response> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
+    public async Task<List<AiICD10Result>> GetICD10SuggestionsAsync(string diagnosis, List<ICD10Result> sqlResults)
     {
         string url = $"{_endpoint}openai/deployments/{_deployment}/chat/completions?api-version={_apiVersion}";
 
@@ -74,39 +74,17 @@ public class OpenAIService : IOpenAIService
             throw new Exception("The response from OpenAI did not contain a valid result.");
         }
 
-        AiICD10Response? aiResponse = null;
+        List<AiICD10Result>? aiResult = null;
         try
         {
-            aiResponse = JsonSerializer.Deserialize<AiICD10Response>(jsonResult);
+            aiResult = JsonSerializer.Deserialize<List<AiICD10Result>>(jsonResult);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
         }
 
-        aiResponse.Reranked = await FormatRerankedResultCodes(aiResponse.Reranked);
-        
-        return aiResponse ?? new AiICD10Response
-        {
-            Reranked = new List<AiICD10Result>(),
-            Additional = new List<AiICD10Result>()
-        };
-    }
-
-    /// <summary>
-    /// Ensure that the re-ranked codes are in the correct format.
-    /// When we get the results back from OpenAI, they are sometimes in the non-standard format (e.g., J44.9 instead of J449).
-    /// </summary>
-    /// <param name="rerankedResults"></param>
-    /// <returns></returns>
-    private Task<List<AiICD10Result>> FormatRerankedResultCodes(List<AiICD10Result> rerankedResults)
-    {
-        foreach (var result in rerankedResults)
-        {
-            result.Code = ICD10CodeNormalizer.ToCMSFormat(result.Code);
-        }
-
-        return Task.FromResult(rerankedResults);
+        return aiResult ?? new List<AiICD10Result>();
     }
 
     private string BuildUserMessage(string diagnosis, List<ICD10Result> sqlResults)
