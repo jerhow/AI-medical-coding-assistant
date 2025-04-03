@@ -58,8 +58,8 @@ public class SearchICD10
         }
 
         // Fetch the code suggestions from the database ("search") and AI service ("AI")
-        SearchResponse searchResponse = await _searchService.SearchICD10Async(query, maxResults);
-        List<AiICD10Result>? aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResponse.DbSearchResults);
+        SearchResult searchResult = await _searchService.SearchICD10Async(query, maxResults);
+        List<AiICD10Result>? aiResponse = await _aiService.GetICD10SuggestionsAsync(query, searchResult.DbSearchResults);
         aiResponse = ICD10CodeNormalizer.FormatCodes(aiResponse, "CMS"); // Codes must be in CMS format for internal consistency
 
         // Validate the AI results against the database to ensure that the codes are valid and not hallucinated
@@ -71,9 +71,8 @@ public class SearchICD10
         var response = req.CreateResponse(HttpStatusCode.OK);
         var result = new SearchResponse
         {
-            UsedFreeTextFallback = searchResponse.UsedFreeTextFallback,
-            TotalCount = searchResponse.TotalCount,
-            DbSearchResults = searchResponse.DbSearchResults,
+            UsedFreeTextFallback = searchResult.UsedFreeTextFallback,
+            TotalCount = searchResult.TotalCount,
             SearchResults = ICD10CodeNormalizer.FormatCodes(normalizedAiResponse, "HumanReadable")
         };
         

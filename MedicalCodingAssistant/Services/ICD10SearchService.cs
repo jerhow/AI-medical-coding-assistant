@@ -16,7 +16,7 @@ public class ICD10SearchService : IICD10SearchService
         _maxAllowedResults = configuration.GetValue<int>("MaxAllowedResults");
     }
 
-    public async Task<SearchResponse> SearchICD10Async(string query, int maxResults)
+    public async Task<SearchResult> SearchICD10Async(string query, int maxResults)
     {
         var maxResultsLimited = Math.Clamp(maxResults, 1, _maxAllowedResults);
         var (results, totalCount) = await FullTextQueryAsync(query, useContains: true, maxResultsLimited);
@@ -28,7 +28,7 @@ public class ICD10SearchService : IICD10SearchService
             usedFreeText = true;
         }
 
-        return new SearchResponse
+        return new SearchResult
         {
             UsedFreeTextFallback = usedFreeText,
             TotalCount = totalCount,
