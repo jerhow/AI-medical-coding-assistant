@@ -31,7 +31,7 @@ public class ICD10SearchService : IICD10SearchService
         return new SearchResult
         {
             UsedFreeTextFallback = usedFreeText,
-            TotalCount = totalCount,
+            TotalSqlResultCount = totalCount,
             DbSearchResults = results,
             SearchResults = new List<AiICD10Result>()
         };

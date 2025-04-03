@@ -72,7 +72,7 @@ public class SearchICD10
         var result = new SearchResponse
         {
             UsedFreeTextFallback = searchResult.UsedFreeTextFallback,
-            TotalCount = searchResult.TotalCount,
+            TotalSqlResultCount = searchResult.TotalSqlResultCount,
             SearchResults = ICD10CodeNormalizer.FormatCodes(normalizedAiResponse, "HumanReadable")
         };
         
