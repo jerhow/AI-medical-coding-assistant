@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MedicalCodingAssistant.Services;
 using MedicalCodingAssistant.Services.Interfaces;
 using Serilog;
+using Serilog.Formatting.Json;
 
 var basePath = AppContext.BaseDirectory;
 var projectRoot = Directory.GetParent(basePath)?.Parent?.Parent?.Parent?.FullName
@@ -15,9 +16,10 @@ Directory.CreateDirectory(logsPath); // Ensure the Logs directory exists
 
 var logger = new LoggerConfiguration()
     .MinimumLevel.Information()
-    .WriteTo.Console()
+    .WriteTo.Console() // readable output during development
     .WriteTo.File(
-        path: Path.Combine(logsPath, "gpt-log-.txt"),
+        formatter: new JsonFormatter(),
+        path: Path.Combine(logsPath, "gpt-log-.jsonl"),
         rollingInterval: RollingInterval.Day,
         shared: true
     )
