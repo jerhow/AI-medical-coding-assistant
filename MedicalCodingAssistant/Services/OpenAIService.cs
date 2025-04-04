@@ -79,6 +79,15 @@ public class OpenAIService : IOpenAIService
             throw new Exception("The response from OpenAI did not contain a valid result.");
         }
 
+        // Get token usage for the GPT request
+        int promptTokens = 0, completionTokens = 0, totalTokens = 0;
+        if (doc.RootElement.TryGetProperty("usage", out var usage)) // `usage` is a sibling of `choices` in the root object
+        {
+            promptTokens = usage.GetProperty("prompt_tokens").GetInt32();
+            completionTokens = usage.GetProperty("completion_tokens").GetInt32();
+            totalTokens = usage.GetProperty("total_tokens").GetInt32();
+        }
+
         List<AiICD10Result>? aiResult = null;
         try
         {
@@ -89,7 +98,7 @@ public class OpenAIService : IOpenAIService
             _logger.LogWarning(ex, "Could not get structured AI results for query: {Query}", diagnosis);
         }
         
-        LogGptResponse(diagnosis, sqlResults, jsonResult, stopwatch, userMessage);
+        LogGptResponse(diagnosis, sqlResults, jsonResult, stopwatch, userMessage, promptTokens, completionTokens, totalTokens);
 
         return aiResult ?? new List<AiICD10Result>();
     }
@@ -116,7 +125,8 @@ public class OpenAIService : IOpenAIService
         return sb.ToString();
     }
 
-    private void LogGptResponse(string diagnosis, List<ICD10Result> sqlResults, string jsonResult, Stopwatch stopwatch, string userMessage)
+    private void LogGptResponse(string diagnosis, List<ICD10Result> sqlResults, string jsonResult, Stopwatch stopwatch, 
+                                string userMessage, int promptTokens, int completionTokens, int totalTokens)
     {
         _gptLoggingService.Log(new GptResponseLog
         {
@@ -130,7 +140,10 @@ public class OpenAIService : IOpenAIService
             SystemPrompt = _initialPrompt,
             UserPrompt = userMessage,
             DeploymentName = _deployment,
-            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
+            Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown",
+            PromptTokens = promptTokens,
+            CompletionTokens = completionTokens,
+            TotalTokens = totalTokens
         });
     }
 }

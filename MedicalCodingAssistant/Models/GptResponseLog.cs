@@ -18,4 +18,9 @@ public class GptResponseLog
         // Optional future fields
         public string? DeploymentName { get; set; }
         public string? Environment { get; set; } // dev/staging/prod
+
+        // Token counts
+        public int PromptTokens { get; set; }
+        public int CompletionTokens { get; set; }
+        public int TotalTokens { get; set; }
 }
