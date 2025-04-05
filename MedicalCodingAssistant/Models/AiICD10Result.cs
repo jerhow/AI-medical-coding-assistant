@@ -18,6 +18,9 @@ public class AiICD10Result
 
     [JsonPropertyName("source")]
     public string Source { get; set; } = "";
+
+    [JsonPropertyName("confidence")]
+    public int Confidence { get; set; } = 0;
     
     public bool IsValid { get; set; } = false; // Default to false until validation takes place
 }
