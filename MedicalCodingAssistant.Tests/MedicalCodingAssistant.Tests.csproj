@@ -21,4 +21,8 @@
     <ProjectReference Include="..\MedicalCodingAssistant\MedicalCodingAssistant.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <NoWarn>7022</NoWarn>
+  </PropertyGroup>
+
 </Project>
