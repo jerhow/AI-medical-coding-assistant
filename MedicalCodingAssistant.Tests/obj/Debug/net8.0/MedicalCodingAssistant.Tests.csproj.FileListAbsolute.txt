@@ -1,12 +1,4 @@
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/.msCoverageSourceRootsMapping_MedicalCodingAssistant.Tests
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.csproj.AssemblyReference.cache
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.GeneratedMSBuildEditorConfig.editorconfig
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.gentestingplatformentrypointinputcache.cache
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.genautoregisteredextensionsinputcache.cache
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.AssemblyInfoInputs.cache
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.AssemblyInfo.cs
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.csproj.CoreCompileInputs.cache
-/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.sourcelink.json
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/MedicalCodingAssistant.deps.json
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/MedicalCodingAssistant.runtimeconfig.json
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/host.json
@@ -272,6 +264,14 @@
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.dll
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/MedicalCodingAssistant.pdb
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/bin/Debug/net8.0/Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.csproj.AssemblyReference.cache
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.GeneratedMSBuildEditorConfig.editorconfig
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.gentestingplatformentrypointinputcache.cache
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.genautoregisteredextensionsinputcache.cache
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.AssemblyInfoInputs.cache
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.AssemblyInfo.cs
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.csproj.CoreCompileInputs.cache
+/Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.sourcelink.json
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalC.340DBDE7.Up2Date
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/MedicalCodingAssistant.Tests.dll
 /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant.Tests/obj/Debug/net8.0/refint/MedicalCodingAssistant.Tests.dll

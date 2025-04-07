@@ -11,7 +11,7 @@ namespace MedicalCodingAssistant.Tests
         public void ToHumanReadableFormat_NullInput_ReturnsEmptyString()
         {
             // Arrange
-            string input = null;
+            string? input = null;
 
             // Act
             string result = ICD10CodeNormalizer.ToHumanReadableFormat(input);
@@ -102,7 +102,7 @@ namespace MedicalCodingAssistant.Tests
         public void ToCMSFormat_NullInput_ReturnsEmptyString()
         {
             // Arrange
-            string input = null;
+            string? input = null;
 
             // Act
             string result = ICD10CodeNormalizer.ToCMSFormat(input);

@@ -41,7 +41,7 @@ public static class ICD10CodeNormalizer
     /// </summary>
     /// <param name="code"></param>
     /// <returns></returns>
-    private static string ToCMSFormat(string code)
+    public static string ToCMSFormat(string code)
     {
         return code?.Replace(".", "", StringComparison.OrdinalIgnoreCase).Trim().ToUpperInvariant() ?? "";
     }
@@ -60,6 +60,11 @@ public static class ICD10CodeNormalizer
         }
 
         code = code.Trim().ToUpperInvariant();
+
+        if (code.Contains("."))
+        {
+            return code;
+        }
 
         // Insert a dot after the third character if the code length is greater than 3
         if (code.Length > 3)
