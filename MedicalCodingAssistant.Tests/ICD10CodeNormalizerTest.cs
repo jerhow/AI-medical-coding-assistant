@@ -1,5 +1,3 @@
-// filepath: /Users/jerryhoward/Documents/source/repos/AI-medical-coding-assistant/MedicalCodingAssistant/Utils/ICD10CodeNormalizerTest.cs
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MedicalCodingAssistant.Utils;
 
 namespace MedicalCodingAssistant.Tests
@@ -14,7 +12,7 @@ namespace MedicalCodingAssistant.Tests
             string? input = null;
 
             // Act
-            string result = ICD10CodeNormalizer.ToHumanReadableFormat(input);
+            string result = ICD10CodeNormalizer.ToHumanReadableFormat(input ?? "");
 
             // Assert
             Assert.AreEqual("", result);
@@ -105,7 +103,7 @@ namespace MedicalCodingAssistant.Tests
             string? input = null;
 
             // Act
-            string result = ICD10CodeNormalizer.ToCMSFormat(input);
+            string result = ICD10CodeNormalizer.ToCMSFormat(input ?? "");
 
             // Assert
             Assert.AreEqual("", result);
