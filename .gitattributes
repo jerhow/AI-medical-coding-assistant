@@ -1,0 +1,3 @@
+MedicalCodingAssistant.Tests/bin/ -export-ignore
+MedicalCodingAssistant.Tests/obj/ -export-ignore
+* text=auto
