@@ -11,7 +11,7 @@ public class GptLoggingService
     private readonly ILogger<GptLoggingService> _logger;
     private readonly bool _logToConsole;
     private readonly bool _logToFile;
-    private readonly string? _logFilePath;
+    public string? _logFilePath;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public GptLoggingService(ILogger<GptLoggingService> logger, IConfiguration config)
