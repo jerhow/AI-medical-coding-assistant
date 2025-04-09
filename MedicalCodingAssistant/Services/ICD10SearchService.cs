@@ -16,6 +16,15 @@ public class ICD10SearchService : IICD10SearchService
         _maxAllowedResults = configuration.GetValue<int>("MaxAllowedResults");
     }
 
+    /// <summary>
+    /// Search for ICD-10 codes using full-text search, and return a SearchResult object with the results.
+    /// Leverages `FullTextQueryAsync` to perform the search, and get the results and the total count of results.
+    /// The search is performed using either CONTAINS or FREETEXT, depending on the specified parameters.
+    /// The results are limited to a maximum number specified by the caller.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="maxResults"></param>
+    /// <returns></returns>
     public async Task<SearchResult> SearchICD10Async(string query, int maxResults)
     {
         var maxResultsLimited = Math.Clamp(maxResults, 1, _maxAllowedResults);
@@ -37,7 +46,16 @@ public class ICD10SearchService : IICD10SearchService
         };
     }
 
-    public async Task<(List<ICD10Result>, int TotalCount)> FullTextQueryAsync(string query, bool useContains, int limit)
+    /// <summary>
+    /// Wrapper method to call the two separate SQL query FULLTEXT search methods, and bundle the results as a tuple.
+    /// `GetResultsAsync` to get the results and `GetTotalCountAsync` to get the total count of results.
+    /// The results are returned as a tuple containing the list of results and the total count.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="useContains"></param>
+    /// <param name="limit"></param>
+    /// <returns></returns>
+    public virtual async Task<(List<ICD10Result>, int TotalCount)> FullTextQueryAsync(string query, bool useContains, int limit)
     {
         var results = new List<ICD10Result>();
 
@@ -51,6 +69,13 @@ public class ICD10SearchService : IICD10SearchService
         return (results, totalCount);
     }
 
+    /// <summary>
+    /// The actual SQL query to fetch the results from the database, using either CONTAINS or FREETEXT to perform the search.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="useContains"></param>
+    /// <param name="limit"></param>
+    /// <returns></returns>
     public async Task<List<ICD10Result>> GetResultsAsync(string query, bool useContains, int limit)
     {
         var results = new List<ICD10Result>();
@@ -88,6 +113,13 @@ public class ICD10SearchService : IICD10SearchService
         return results;
     }
 
+    /// <summary>
+    /// The second time we hit the database during a search, this time to get the total count of all possible results.
+    /// Like `GetResultsAsync`, this uses either CONTAINS or FREETEXT for the search as determined by the bool `useContains`.
+    /// </summary>
+    /// <param name="query"></param>
+    /// <param name="useContains"></param>
+    /// <returns></returns>
     public async Task<int> GetTotalCountAsync(string query, bool useContains)
     {
         using var conn = new SqlConnection(_connectionString);
