@@ -14,6 +14,7 @@ public class SearchICD10
     private readonly IICD10SearchService _searchService;
     private readonly int _defaultMaxResults;
     private readonly IOpenAIService _aiService;
+    private readonly IConfiguration _config;
 
     public SearchICD10(ILoggerFactory loggerFactory, IICD10SearchService searchService, IConfiguration configuration, IOpenAIService aiService)
     {
@@ -21,12 +22,19 @@ public class SearchICD10
         _searchService = searchService;
         _defaultMaxResults = configuration.GetValue<int>("DefaultMaxResults");
         _aiService = aiService;
+        _config = configuration;
     }
 
     [Function("SearchICD10")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
     {
+        if (!ValidateApiKey(req))
+        {
+            _logger.LogWarning("Unauthorized request: missing or invalid API key");
+            return req.CreateResponse(HttpStatusCode.Forbidden); // 403 Forbidden
+        }
+
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         SearchRequest input;
 
@@ -112,4 +120,32 @@ public class SearchICD10
 
         return aiResponse;
     }
+
+    /// <summary>
+    /// Validates the API key from the request headers.
+    /// The API key is expected to be in the "Authorization" header with the format "Bearer {key}".
+    /// </summary>
+    /// <param name="req"></param>
+    /// <returns></returns>
+    private bool ValidateApiKey(HttpRequestData req)
+    {
+        const string prefix = "Bearer ";
+
+        if (!req.Headers.TryGetValues("Authorization", out var authHeaders))
+        {
+            return false;
+        }
+
+        var authHeader = authHeaders.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith(prefix))
+        {
+            return false;
+        }
+
+        var providedKey = authHeader.Substring(prefix.Length).Trim();
+        var expectedKey = _config["ApiKey"];
+
+        return !string.IsNullOrWhiteSpace(expectedKey) && providedKey == expectedKey;
+    }
+
 }
