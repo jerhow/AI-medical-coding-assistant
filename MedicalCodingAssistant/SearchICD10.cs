@@ -89,6 +89,9 @@ public class SearchICD10
         {
             UsedFreeTextFallback = searchResult.UsedFreeTextFallback,
             TotalSqlResultCount = searchResult.TotalSqlResultCount,
+            AiModel = _config["AzureOpenAI:Deployment"] ?? string.Empty,
+            AiVersion = _config["AzureOpenAI:ApiVersion"] ?? string.Empty,
+            AiTemperature = double.TryParse(_config["AzureOpenAI:Temperature"], out var temperature) ? temperature : 0.3,
             SearchResults = ICD10CodeNormalizer.FormatCodes(normalizedAiResponse, "HumanReadable")
         };
         
