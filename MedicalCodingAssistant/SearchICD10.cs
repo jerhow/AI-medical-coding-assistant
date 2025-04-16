@@ -27,7 +27,7 @@ public class SearchICD10
 
     [Function("SearchICD10")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SearchICD10")] HttpRequestData req)
     {
         if (!ValidateApiKey(req))
         {
