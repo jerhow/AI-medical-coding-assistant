@@ -9,11 +9,13 @@ public class ICD10SearchService : IICD10SearchService
 {
     private readonly string? _connectionString;
     private readonly int _maxAllowedResults;
+    private readonly bool _forceFreeTextSearch;
 
-    public ICD10SearchService(IConfiguration configuration)
+    public ICD10SearchService(IConfiguration config)
     {
-        _connectionString = configuration["SqlConnectionString"];
-        _maxAllowedResults = configuration.GetValue<int>("MaxAllowedResults");
+        _connectionString = config["SqlConnectionString"];
+        _maxAllowedResults = config.GetValue<int>("MaxAllowedResults");
+        _forceFreeTextSearch = config.GetValue<bool>("ForceFreeTextSearch");
     }
 
     /// <summary>
@@ -28,9 +30,20 @@ public class ICD10SearchService : IICD10SearchService
     public async Task<SearchResult> SearchICD10Async(string query, int maxResults)
     {
         var maxResultsLimited = Math.Clamp(maxResults, 1, _maxAllowedResults);
-        var (results, totalCount) = await FullTextQueryAsync(query, useContains: true, maxResultsLimited);
+        var results = new List<ICD10Result>();
+        var totalCount = 0;
         var usedFreeText = false;
 
+        // First, try CONTAINS
+        if (!_forceFreeTextSearch)
+        {
+            (results, totalCount) = await FullTextQueryAsync(query, useContains: true, maxResultsLimited);
+            usedFreeText = false;
+        }
+
+        // If no results, try FREETEXT
+        // This is a fallback to ensure we get some results, even if they are less precise.
+        // This is useful for cases where the user might be searching for a more general term.
         if (results.Count == 0)
         {
             (results, totalCount) = await FullTextQueryAsync(query, useContains: false, maxResultsLimited);
