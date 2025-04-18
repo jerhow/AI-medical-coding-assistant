@@ -4,6 +4,9 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.OpenApi.Models;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using MedicalCodingAssistant.Models;
 using MedicalCodingAssistant.Utils;
 using MedicalCodingAssistant.Services.Interfaces;
@@ -26,6 +29,23 @@ public class SearchICD10
     }
 
     [Function("SearchICD10")]
+    // [OpenApiSecurity("Bearer", SecuritySchemeType.ApiKey)]
+    [OpenApiOperation(
+        operationId: "SearchICD10",
+        tags: new[] { "ICD-10" },
+        Summary = "Search for ICD-10-CM codes",
+        Description = "Returns a ranked list of relevant ICD-10-CM codes based on a natural language clinical diagnosis or symptom description.",
+        Visibility = OpenApiVisibilityType.Important)]
+    [OpenApiRequestBody(
+        contentType: "application/json",
+        bodyType: typeof(SearchRequest),
+        Required = true,
+        Description = "A natural language diagnosis or symptom description, plus an optional max SQL result count.")]
+    [OpenApiResponseWithBody(
+        statusCode: HttpStatusCode.OK,
+        contentType: "application/json",
+        bodyType: typeof(SearchResponse),
+        Description = "The list of ranked ICD-10-CM codes with confidence and reasoning.")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "SearchICD10")] HttpRequestData req)
     {
