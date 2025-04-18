@@ -98,13 +98,13 @@ public class ICD10SearchService : IICD10SearchService
 
         var resultSql = useContains
             ? @"SELECT TOP (@limit) code, long_desc, FTT.RANK
-                FROM dbo.cms_icd10_valid AS ICD
-                INNER JOIN CONTAINSTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
+                FROM dbo.cms_icd10cm_2025 AS ICD
+                INNER JOIN CONTAINSTABLE(dbo.cms_icd10cm_2025, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
                 ORDER BY FTT.RANK DESC, ICD.Code ASC;"
             : @"SELECT TOP (@limit) code, long_desc, FTT.RANK
-                FROM dbo.cms_icd10_valid AS ICD
-                INNER JOIN FREETEXTTABLE(dbo.cms_icd10_valid, long_desc, @query) AS FTT
+                FROM dbo.cms_icd10cm_2025 AS ICD
+                INNER JOIN FREETEXTTABLE(dbo.cms_icd10cm_2025, long_desc, @query) AS FTT
                     ON ICD.ID = FTT.[KEY]
                 ORDER BY FTT.RANK DESC, ICD.Code ASC;";
 
@@ -139,8 +139,8 @@ public class ICD10SearchService : IICD10SearchService
         await conn.OpenAsync();
 
         var countSql = useContains
-            ? "SELECT COUNT(*) FROM dbo.cms_icd10_valid WHERE CONTAINS(long_desc, @query)"
-            : "SELECT COUNT(*) FROM dbo.cms_icd10_valid WHERE FREETEXT(long_desc, @query)";
+            ? "SELECT COUNT(*) FROM dbo.cms_icd10cm_2025 WHERE CONTAINS(long_desc, @query)"
+            : "SELECT COUNT(*) FROM dbo.cms_icd10cm_2025 WHERE FREETEXT(long_desc, @query)";
 
         using var cmd = new SqlCommand(countSql, conn);
         cmd.Parameters.AddWithValue("@query", useContains ? $"\"{query}\"" : query);
