@@ -53,7 +53,7 @@ public class ICD10SearchService : IICD10SearchService
         return new SearchResult
         {
             UsedFreeTextFallback = usedFreeText,
-            TotalSqlResultCount = totalCount,
+            TotalSqlOverallMatchCount = totalCount,
             DbSearchResults = results,
             SearchResults = new List<AiICD10Result>()
         };
@@ -61,7 +61,7 @@ public class ICD10SearchService : IICD10SearchService
 
     /// <summary>
     /// Wrapper method to call the two separate SQL query FULLTEXT search methods, and bundle the results as a tuple.
-    /// `GetResultsAsync` to get the results and `GetTotalCountAsync` to get the total count of results.
+    /// `GetResultsAsync` to get the results and `GetTotalOverallMatchCountAsync` to get the total count of results.
     /// The results are returned as a tuple containing the list of results and the total count.
     /// </summary>
     /// <param name="query"></param>
@@ -78,7 +78,7 @@ public class ICD10SearchService : IICD10SearchService
         }
 
         results = await GetResultsAsync(query, useContains, limit);
-        var totalCount = await GetTotalCountAsync(query, useContains);
+        var totalCount = await GetTotalOverallMatchCountAsync(query, useContains);
         return (results, totalCount);
     }
 
@@ -127,13 +127,13 @@ public class ICD10SearchService : IICD10SearchService
     }
 
     /// <summary>
-    /// The second time we hit the database during a search, this time to get the total count of all possible results.
+    /// The second time we hit the database during a search, this time to get the total count of ALL matches (possible results), regardless of rank or relevance.
     /// Like `GetResultsAsync`, this uses either CONTAINS or FREETEXT for the search as determined by the bool `useContains`.
     /// </summary>
     /// <param name="query"></param>
     /// <param name="useContains"></param>
     /// <returns></returns>
-    public async Task<int> GetTotalCountAsync(string query, bool useContains)
+    public async Task<int> GetTotalOverallMatchCountAsync(string query, bool useContains)
     {
         using var conn = new SqlConnection(_connectionString);
         await conn.OpenAsync();

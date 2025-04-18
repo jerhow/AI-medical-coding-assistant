@@ -88,7 +88,7 @@ public class SearchICD10
         var result = new SearchResponse
         {
             UsedFreeTextFallback = searchResult.UsedFreeTextFallback,
-            TotalSqlResultCount = searchResult.TotalSqlResultCount,
+            TotalSqlOverallMatchCount = searchResult.TotalSqlOverallMatchCount,
             AiModel = _config["AzureOpenAI:Deployment"] ?? string.Empty,
             AiVersion = _config["AzureOpenAI:ApiVersion"] ?? string.Empty,
             AiTemperature = double.TryParse(_config["AzureOpenAI:Temperature"], out var temperature) ? temperature : 0.3,

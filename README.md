@@ -95,7 +95,7 @@ The API response includes:
 ```json
 {
   "UsedFreeTextFallback": true,
-  "TotalSqlResultCount": 43,
+  "TotalSqlOverallMatchCount": 43,
   "AiModel": "gpt-4",
   "AiVersion": "2025-01-01-preview",
   "AiTemperature": 0.3,
