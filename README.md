@@ -1,10 +1,12 @@
-# AI-Powered Medical Coding Assistant — System Summary
+# AI-Powered Medical Coding Assistant
 
 ## Purpose
 
-The Medical Coding Assistant accepts a natural language clinical diagnosis or description (e.g., `"chronic bronchitis and emphysema"`) and returns **relevant ICD-10-CM codes**, prioritized by clinical relevance. The assistant combines **full-text database search** with **LLM-powered interpretation and ranking** to produce context-aware, accurate suggestions.
+The Medical Coding Assistant accepts a natural language clinical diagnosis or description (e.g., `"Chronic bronchitis and emphysema"`) and returns **relevant ICD-10-CM codes**, prioritized by clinical relevance. The assistant combines **full-text database search** with **LLM-powered interpretation and ranking** to produce context-aware, accurate suggestions.
 
 ---
+
+![AIMCA-demo-01](https://github.com/user-attachments/assets/f00f3668-3f19-4f52-b719-512c2b00c219)
 
 ## How It Works
 
