@@ -12,11 +12,13 @@ The Medical Coding Assistant accepts a natural language clinical diagnosis or de
 
 ### 1. Initial Input (via REST API)
 
+![AIMCA-demo-02](https://github.com/user-attachments/assets/a0fd3b16-0edf-493f-ae3d-47ed74b5890f)
+
 The user submits:
 
 ```json
 {
-  "query": "chronic bronchitis and emphysema",
+  "query": "Chronic bronchitis and emphysema",
   "maxSqlResults": 10
 }
 ```
