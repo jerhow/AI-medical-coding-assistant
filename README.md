@@ -14,7 +14,7 @@ The Medical Coding Assistant accepts a natural language clinical diagnosis or de
 
 ![AIMCA-demo-02](https://github.com/user-attachments/assets/a0fd3b16-0edf-493f-ae3d-47ed74b5890f)
 
-For example, the user submits:
+This request is sent to the search endpoint as JSON:
 
 ```json
 {
