@@ -182,7 +182,7 @@ The assistant also supports:
 
 ## Summary
 
-This system combines the speed of SQL full-text search with the semantic intelligence of a GPT-4 model to return highly relevant ICD-10-CM codes for free-text clinical input. The pipeline balances structure, explainability, and accuracy — with logging and configuration suitable for real-world usage and demonstration.
+This system combines SQL full-text search with the semantic intelligence of a GPT-4 model to return highly relevant ICD-10-CM codes for free-text clinical input. The pipeline balances structure, explainability, and accuracy — with logging and configuration suitable for real-world usage and demonstration.
 
 ---
 
